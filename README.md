@@ -183,12 +183,12 @@ timer --help    # Show help
 timer -v        # Show version (e.g. timer dev or timer vX.Y.Z)
 timer -q 5m     # Quiet mode: inline countdown only
 timer -s 5m     # Force alarm playback even in quiet/non-TTY mode
-timer -qs 5m    # Combined short flags: quiet + force alarm
+timer -qs 5m    # Inline countdown + alarm, no title bar updates
 timer --sound 5m                              # Force alarm even in quiet/non-TTY mode
 timer --sound-file ~/Sounds/bell.mp3 5m       # Play custom sound on completion
 timer -f ~/Sounds/bell.mp3 5m                 # Play custom sound (short flag)
 timer -f /System/Library/Sounds/Funk.aiff 5  # macOS: play a built-in alert sound
-timer -f "~/Music/AudioBooks YT/book.mp3" 5m # Quoted path with spaces
+timer -f "~/Music/Alarm Sounds/bell.mp3" 5m  # Quoted path with spaces
 timer -c 10m > /tmp/timer.log                 # Force macOS sleep inhibition in non-TTY
 timer -- 10s    # End option parsing; treat following token as positional duration
 timer -- --help # Treat --help as positional token (invalid duration)
@@ -211,7 +211,8 @@ are both supported, as are bare hour shorthands (`9am`). `12am` is midnight and
 - `-v`, `--version`: Show version and exit (reports injected build version, module
   version when available, or `timer dev` for local non-injected builds)
 - `-q`, `--quiet`: TTY: inline countdown only (no title updates, completion line,
-  alarm, or cancel text). Non-TTY: suppress lifecycle status output.
+  alarm, or cancel text). Non-TTY: suppress lifecycle status output. Combine with
+  -s (-qs) to keep the alarm while still suppressing the title bar.
 - `-s`, `--sound`: Force alarm playback on completion even in `--quiet` or non-TTY mode
 - `-f`, `--sound-file <path>`: Path to a custom audio file to play on completion
   (implies `--sound`; supported on macOS, Linux, and FreeBSD). If the file cannot
