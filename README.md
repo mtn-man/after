@@ -10,8 +10,8 @@ and optional completion alarms.
 - Audio alert on completion (best-effort, platform-specific backend)
 - Wall clock target mode: count down to a time of day in 24-hour or 12-hour AM/PM format
 - Optional `-q`/`--quiet` mode for inline countdown only
-- Optional `--sound` to force alarm playback on completion
-- Optional `--caffeinate` to force sleep-inhibition attempt in non-TTY mode (macOS only)
+- Optional `-s`/`--sound` to force alarm playback on completion
+- Optional `-c`/`--caffeinate` to force sleep-inhibition attempt in non-TTY mode (macOS only)
 - Ceiling-based display (never shows 00:00:00 while time remains)
 - Non-TTY lifecycle logging by default (`started`/`complete`/`cancelled`)
 - Clean, minimal interface
@@ -189,10 +189,10 @@ timer --sound-file ~/Sounds/bell.mp3 5m       # Play custom sound on completion
 timer -f ~/Sounds/bell.mp3 5m                 # Play custom sound (short flag)
 timer -f /System/Library/Sounds/Funk.aiff 5  # macOS: play a built-in alert sound
 timer -f "~/Music/Alarm Sounds/bell.mp3" 5m  # Quoted path with spaces
-timer -c 10m > /tmp/timer.log                 # Force macOS sleep inhibition in non-TTY
+timer -c 10m 2> /tmp/timer.log                # Force macOS sleep inhibition in non-TTY
 timer -- 10s    # End option parsing; treat following token as positional duration
 timer -- --help # Treat --help as positional token (invalid duration)
-timer 10m > /tmp/timer.out 2> /tmp/timer.status # Separate stdout and stderr
+timer 10m 2> /tmp/timer.status               # Capture lifecycle output
 ```
 
 The timer accepts any duration format supported by Go's `time.ParseDuration`,
@@ -210,9 +210,9 @@ are both supported, as are bare hour shorthands (`9am`). `12am` is midnight and
 - `-h`, `--help`: Show help and exit
 - `-v`, `--version`: Show version and exit (reports injected build version, module
   version when available, or `timer dev` for local non-injected builds)
-- `-q`, `--quiet`: TTY: inline countdown only (no title updates, completion line,
+- `-q`, `--quiet`: TTY: inline countdown only (no title bar updates, completion line,
   alarm, or cancel text). Non-TTY: suppress lifecycle status output. Combine with
-  -s (-qs) to keep the alarm while still suppressing the title bar.
+  `-s` (`-qs`) to keep the alarm while still suppressing the title bar.
 - `-s`, `--sound`: Force alarm playback on completion even in `--quiet` or non-TTY mode
 - `-f`, `--sound-file <path>`: Path to a custom audio file to play on completion
   (implies `--sound`; supported on macOS, Linux, and FreeBSD). If the file cannot
@@ -242,18 +242,19 @@ are both supported, as are bare hour shorthands (`9am`). `12am` is midnight and
 
 ## How It Works
 
-Run-mode status output is written to `stderr`, while `stdout` remains available
-for pipeline/data use.
+Run-mode status output is written to `stderr`, leaving `stdout` clean for
+pipeline use.
 
 In interactive status mode (`stderr` is a TTY), the timer updates every 500ms in
-`HH:MM:SS` format. In normal mode, it updates both the terminal line and title bar
-(when terminal capabilities allow it).
+`HH:MM:SS` format, updating both the terminal line and title bar (when terminal
+capabilities allow it). With `-q` / `--quiet`, the title bar update is suppressed
+and only the inline countdown is shown.
 
 In normal interactive mode, completion prints `timer complete`, plays an alert
 using the best available backend for your platform, and exits.
 
-With `-q` / `--quiet` in interactive mode, timer output is limited to the inline
-countdown: no title updates, no completion line, no alarm, and no cancel text.
+With `-q` / `--quiet` in interactive mode, completion and cancellation text are
+also suppressed, and no alarm plays on completion.
 
 When `stderr` is not a TTY (for example, redirected), the timer emits
 lifecycle-only status lines: `timer: started (...)`, `timer: complete`, and
