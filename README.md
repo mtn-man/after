@@ -3,15 +3,14 @@
 A fast command-line countdown tool with live terminal feedback, graceful cancellation,
 and optional completion alarms.
 
-<img src="assets/demo.gif" width="600" alt="after 3s demo" />
-<img src="assets/demo-wall-clock.gif" width="600" alt="after 1pm wall clock demo" />
+<img src="assets/demo.gif" width="600" alt="after demo" />
 
 ## Features
 
-- Live countdown display in terminal status output (`stderr`) and title bar (when supported)
+- Live countdown display in the terminal and title bar (when supported)
 - Graceful cancellation via Ctrl+C
 - Audio alert on completion (best-effort, platform-specific backend)
-- Wall clock target mode: count down to a time of day in 24-hour or 12-hour AM/PM format
+- Count down to a time of day in 24-hour or 12-hour AM/PM format
 - Optional `-q`/`--quiet` mode for inline countdown only
 - Optional `-s`/`--sound` to force alarm playback on completion
 - Optional `-c`/`--caffeinate` to force sleep-inhibition attempt in non-TTY mode (macOS only)
@@ -24,7 +23,6 @@ and optional completion alarms.
 Install and run in under a minute (requires [Homebrew](https://brew.sh)):
 
 ```bash
-brew tap Mtn-Man/tools
 brew install Mtn-Man/tools/after
 after --help
 after 10m
@@ -45,7 +43,6 @@ If `after` is not found once installed, see [Troubleshooting](#troubleshooting).
 ### Install With Homebrew (Recommended)
 
 ```bash
-brew tap Mtn-Man/tools
 brew install Mtn-Man/tools/after
 ```
 
@@ -68,12 +65,7 @@ after --version
    Note: release filenames use `darwin` to refer to macOS.
    The examples below use macOS Apple Silicon filenames; swap in the archive
    and binary names for your OS/architecture.
-2. Open a terminal and change to the folder where you downloaded the release files
-   (for example, `~/Downloads`):
-   ```bash
-   cd ~/Downloads
-   ```
-3. Verify checksum (optional but recommended):
+2. Verify checksum (optional but recommended):
    Example for macOS Apple Silicon:
    ```bash
    grep "after_<version>_darwin_arm64.tar.gz$" checksums.txt | shasum -a 256 -c -
@@ -82,17 +74,17 @@ after --version
    ```bash
    grep "after_<version>_linux_amd64.tar.gz$" checksums.txt | sha256sum -c -
    ```
-4. Extract your archive (example shown for macOS Apple Silicon):
+3. Extract your archive (example shown for macOS Apple Silicon):
    ```bash
    tar -xzf after_<version>_darwin_arm64.tar.gz
    ```
-5. Install the extracted binary into `/usr/local/bin` (default):
+4. Install the extracted binary into `/usr/local/bin` (default):
    ```bash
    sudo install -m 0755 after_darwin_arm64 /usr/local/bin/after
    ```
    If you are on a different platform, replace the archive and binary filenames
    above with the matching release files for your OS/architecture.
-6. Alternative (no `sudo`): install to `~/.local/bin`:
+5. Alternative (no `sudo`): install to `~/.local/bin`:
    ```bash
    mkdir -p ~/.local/bin
    install -m 0755 after_darwin_arm64 ~/.local/bin/after
@@ -108,7 +100,7 @@ after --version
    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
    source ~/.bashrc
    ```
-7. Verify:
+6. Verify:
    ```bash
    after --version
    ```
@@ -135,13 +127,7 @@ go build -o after .
 ./after --version
 ```
 
-Build with an injected version (recommended for releases):
-```bash
-go build -ldflags "-X main.version=vX.Y.Z" -o after .
-./after --version
-```
-
-For local source builds without `-ldflags`, `--version` reports `after dev`.
+For local source builds, `--version` reports `after dev`.
 When installed with `go install github.com/Mtn-Man/after@<version>`, `--version`
 typically reports that module version.
 
@@ -154,12 +140,8 @@ after --version
 after --quiet <duration>
 after --sound <duration>
 after --sound-file <path> <duration>
-after -f <path> <duration>
-after -s <duration>
 after --caffeinate <duration>
-after -c <duration>
 after -qs <duration>
-after -- <duration>
 ```
 
 For ergonomics, options may be placed before or after the duration operand
@@ -172,41 +154,32 @@ after 30s       # 30 seconds
 after 30        # 30 seconds (bare numbers are seconds)
 after 5m        # 5 minutes
 after 1.5h      # 1.5 hours
-after 0.5       # 500 milliseconds
 after 90m       # 90 minutes
 after 14:30     # count down to 2:30 PM today (or tomorrow if already past)
 after 9:00      # count down to 9:00 AM today (or tomorrow if already past)
 after 9am       # count down to 9:00 AM (12-hour shorthand)
 after 2:30pm    # count down to 2:30 PM
-after 9:30:30am # count down to 9:30:30 AM
 after "2:30 PM" # space-separated AM/PM suffix (quotes optional)
 after 12pm      # count down to noon
 after 12am      # count down to midnight
-after --help    # Show help
-after -v        # Show version (e.g. after dev or after vX.Y.Z)
 after -q 5m     # Quiet mode: inline countdown only
 after -s 5m     # Force alarm playback even in quiet/non-TTY mode
 after -qs 5m    # Inline countdown + alarm, no title bar updates
-after --sound 5m                              # Force alarm even in quiet/non-TTY mode
 after --sound-file ~/Sounds/bell.mp3 5m       # Play custom sound on completion
-after -f ~/Sounds/bell.mp3 5m                 # Play custom sound (short flag)
 after -f /System/Library/Sounds/Funk.aiff 5  # macOS: play a built-in alert sound
 after -f "~/Music/Alarm Sounds/bell.mp3" 5m  # Quoted path with spaces
 after -c 10m 2> /tmp/after.log               # Force macOS sleep inhibition in non-TTY
-after -- 10s    # End option parsing; treat following token as positional duration
-after -- --help # Treat --help as positional token (invalid duration)
-after 10m 2> /tmp/after.status              # Capture lifecycle output
+after 10m 2> /tmp/after.status               # Capture lifecycle output
+after -s 10m 2> /dev/null &                  # backgrounded with alarm
 ```
 
-after accepts any duration format supported by Go's `time.ParseDuration`,
-including combinations like `1h30m` or `2h15m30s`. Bare integers and decimals
-(for example `30`, `0.5`, `.5`) are also accepted and treated as seconds.
+Durations can be expressed as seconds (`30`, `90`), decimals (`1.5`), or with
+unit suffixes (`30s`, `10m`, `1.5h`, `1h30m`). Bare integers are treated as seconds.
 
-In wall clock mode, pass a time of day instead of a duration. after counts
-down to the next occurrence of that time, wrapping to the following day if it has
-already passed. 24-hour (`14:30`) and 12-hour AM/PM formats (`2:30pm`, `"2:30 PM"`)
-are both supported, as are bare hour shorthands (`9am`). `12am` is midnight and
-`12pm` is noon.
+You can also pass a time of day instead of a duration — after counts down to the
+next occurrence of that time, wrapping to the following day if it has already passed.
+Both 24-hour (`14:30`) and 12-hour AM/PM formats (`2:30pm`, `"2:30 PM"`) are
+supported, as are bare hour shorthands (`9am`). `12am` is midnight and `12pm` is noon.
 
 ### Flags
 
@@ -228,7 +201,6 @@ are both supported, as are bare hour shorthands (`9am`). `12am` is midnight and
 
 - Go 1.20+ required only for building from source
 - A Unix-like OS (macOS, Linux, or BSD) for source builds
-- Prebuilt binaries are currently published for macOS/Linux only
 
 ## Troubleshooting
 

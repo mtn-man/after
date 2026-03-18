@@ -13,3 +13,12 @@ Sleep 500ms
 Enter
 Sleep 4.5s
 Sleep 1s
+
+Ctrl+L
+Sleep 1s
+Type "after 1pm"
+Sleep 500ms
+Enter
+Sleep 3s
+Ctrl+C
+Sleep 2.5s
