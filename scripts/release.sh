@@ -58,9 +58,9 @@ CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 git tag | grep -qx "$VERSION" \
   && err "Tag $VERSION already exists"
 
-# dist dir must not already exist
-[[ ! -d "$DIST_DIR" ]] \
-  || err "$DIST_DIR already exists — remove it to re-run"
+# dist dir must not contain existing build artifacts
+[[ ! -f "${DIST_DIR}/checksums.txt" ]] \
+  || err "${DIST_DIR}/checksums.txt already exists — remove dist dir to re-run"
 
 success "Pre-flight checks passed"
 
