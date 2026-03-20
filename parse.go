@@ -217,13 +217,23 @@ func parseDurationToken(token string) (time.Duration, error) {
 func parseWallClockTime(token string, now time.Time) (time.Duration, bool, error) {
 	stripped, isPM, hasSuffix := stripAMPM(token)
 
+	switch strings.ToLower(token) {
+	case "noon":
+		stripped = "12:00"
+	case "midnight":
+		stripped = "00:00"
+	}
+
 	hasColon := strings.ContainsRune(stripped, ':')
 	if !hasSuffix && !hasColon {
 		return 0, false, nil
 	}
 
-	if stripped == "24:00" || stripped == "24:00:00" {
-		stripped = strings.Replace(stripped, "24", "00", 1)
+	switch stripped {
+	case "24:00":
+		stripped = "00:00"
+	case "24:00:00":
+		stripped = "00:00:00"
 	}
 
 	var parts []string
@@ -286,7 +296,7 @@ func stripAMPM(token string) (string, bool, bool) {
 	lower := strings.ToLower(token)
 	for _, suffix := range []string{" am", " pm", "am", "pm"} {
 		if strings.HasSuffix(lower, suffix) {
-			isPM := strings.HasSuffix(lower, "pm")
+			isPM := suffix == "pm" || suffix == " pm"
 			return strings.TrimSuffix(token, token[len(token)-len(suffix):]), isPM, true
 		}
 	}

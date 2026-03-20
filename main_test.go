@@ -882,6 +882,24 @@ func TestParseWallClockTime(t *testing.T) {
 			token:  "9",
 			wantOk: false,
 		},
+
+		// --- named aliases: noon and midnight ---
+		{
+			name:    "noon resolves to 12:00 and wraps to next day when past",
+			token:   "noon",
+			wantOk:  true,
+			wantDur: 21*time.Hour + 30*time.Minute,
+		},
+		{
+			name:    "midnight resolves to 00:00 and wraps to next day",
+			token:   "midnight",
+			wantOk:  true,
+			wantDur: 9*time.Hour + 30*time.Minute,
+		},
+		{name: "Noon is case-insensitive", token: "Noon", wantOk: true, wantDur: 21*time.Hour + 30*time.Minute},
+		{name: "NOON is case-insensitive", token: "NOON", wantOk: true, wantDur: 21*time.Hour + 30*time.Minute},
+		{name: "Midnight is case-insensitive", token: "Midnight", wantOk: true, wantDur: 9*time.Hour + 30*time.Minute},
+		{name: "MIDNIGHT is case-insensitive", token: "MIDNIGHT", wantOk: true, wantDur: 9*time.Hour + 30*time.Minute},
 	}
 
 	for _, tc := range tests {
@@ -908,6 +926,18 @@ func TestParseWallClockTime(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestParseWallClockTimeNoonFuture(t *testing.T) {
+	t.Parallel()
+	now := time.Date(2024, 3, 5, 10, 0, 0, 0, time.Local) // 10:00, before noon
+	d, ok, err := parseWallClockTime("noon", now)
+	if !ok || err != nil {
+		t.Fatalf("parseWallClockTime(noon) ok=%v err=%v", ok, err)
+	}
+	if want := 2 * time.Hour; d != want {
+		t.Fatalf("got %v, want %v", d, want)
 	}
 }
 

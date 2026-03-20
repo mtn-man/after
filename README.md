@@ -8,7 +8,7 @@ and optional completion alarms.
 ## Features
 
 - Live countdown display in the terminal and title bar (when supported)
-- Graceful cancellation via Ctrl+C
+- Graceful cancellation via Ctrl+C, or `q` / Esc / Ctrl+D in interactive mode
 - Audio alert on completion (best-effort, platform-specific backend)
 - Count down to a time of day in 24-hour or 12-hour AM/PM format
 - Optional `-q`/`--quiet` mode for inline countdown only
@@ -156,8 +156,10 @@ after 9:00      # count down to 9:00 AM today (or tomorrow if already past)
 after 9am       # count down to 9:00 AM (12-hour shorthand)
 after 2:30pm    # count down to 2:30 PM
 after "2:30 PM" # space-separated AM/PM suffix (quotes optional)
-after 12pm      # count down to noon
-after 12am      # count down to midnight
+after noon      # count down to noon
+after midnight  # count down to midnight
+after 12pm      # same as noon
+after 12am      # same as midnight
 after -q 5m     # Quiet mode: inline countdown only
 after -s 5m     # Force alarm playback even in quiet/non-TTY mode
 after -qs 5m    # Inline countdown + alarm, no title bar updates
@@ -175,7 +177,8 @@ unit suffixes (`30s`, `10m`, `1.5h`, `1h30m`). Bare integers are treated as seco
 You can also pass a time of day instead of a duration — after counts down to the
 next occurrence of that time, wrapping to the following day if it has already passed.
 Both 24-hour (`14:30`) and 12-hour AM/PM formats (`2:30pm`, `"2:30 PM"`) are
-supported, as are bare hour shorthands (`9am`). `12am` is midnight and `12pm` is noon.
+supported, as are bare hour shorthands (`9am`). `noon` and `midnight` are also
+accepted as named aliases (equivalent to `12pm` and `12am`).
 
 ### Flags
 
@@ -215,6 +218,7 @@ Status output is written to `stderr`, leaving `stdout` clean for pipeline use.
 The countdown updates every 500ms in `HH:MM:SS` format. In a normal terminal session,
 the title bar also updates alongside the inline countdown. On completion, `after complete`
 is printed and an audio alert plays. Press Ctrl+C at any time to cancel gracefully.
+In an interactive terminal session, `q`, Esc, and Ctrl+D also cancel.
 
 With `-q` / `--quiet`, title bar updates, completion text, and the alarm are all
 suppressed. Combine with `-s` to keep the alarm while still running quietly.

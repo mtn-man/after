@@ -32,20 +32,14 @@ func formatRemainingTime(remaining time.Duration) string {
 }
 
 func printComplete(status statusDisplay, quiet bool) {
-	if quiet {
-		clearInteractiveStatusLine(status)
-		return
-	}
-
-	if status.interactive {
-		clearInteractiveStatusLine(status)
-		writeStatusln(status.writer, "after complete")
-		return
-	}
-	writeStatusln(status.writer, "after: complete")
+	printFinalStatus(status, quiet, "after complete", "after: complete")
 }
 
 func printCancelled(status statusDisplay, quiet bool) {
+	printFinalStatus(status, quiet, "after cancelled", "after: cancelled")
+}
+
+func printFinalStatus(status statusDisplay, quiet bool, interactiveMsg, nonTTYMsg string) {
 	if quiet {
 		clearInteractiveStatusLine(status)
 		return
@@ -53,10 +47,10 @@ func printCancelled(status statusDisplay, quiet bool) {
 
 	if status.interactive {
 		clearInteractiveStatusLine(status)
-		writeStatusln(status.writer, "after cancelled")
+		writeStatusln(status.writer, interactiveMsg)
 		return
 	}
-	writeStatusln(status.writer, "after: cancelled")
+	writeStatusln(status.writer, nonTTYMsg)
 }
 
 func clearInteractiveStatusLine(status statusDisplay) {

@@ -140,22 +140,17 @@ func alarmCandidatesForGOOS(goos string, soundFile string) []alarmCommand {
 }
 
 func resolveSoundFilePath(path string) (string, error) {
-	switch {
-	case path == "~":
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		return homeDir, nil
-	case strings.HasPrefix(path, "~/"):
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		return homeDir + path[1:], nil
-	default:
+	if path != "~" && !strings.HasPrefix(path, "~/") {
 		return path, nil
 	}
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	if path == "~" {
+		return homeDir, nil
+	}
+	return homeDir + path[1:], nil
 }
 
 func resolveUsableSoundFilePath(path string) string {
