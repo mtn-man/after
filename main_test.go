@@ -483,6 +483,9 @@ func TestParseInvocation_RunModeFlagsAndDuration(t *testing.T) {
 		{name: "space-separated AM/PM with leading flag still parses", args: cliArgs("-q", "3:00", "pm"), wantErr: nil, want: invocation{mode: modeRun, quiet: true}, skipDurationCheck: true},
 		{name: "space-separated AM/PM with trailing flag still parses", args: cliArgs("3:00", "pm", "-q"), wantErr: nil, want: invocation{mode: modeRun, quiet: true}, skipDurationCheck: true},
 		{name: "invalid time with space-separated AM/PM returns invalid time error", args: cliArgs("13:00", "pm"), wantErr: errInvalidTime},
+		{name: "a shorthand attached", args: cliArgs("7a"), wantErr: nil, want: invocation{mode: modeRun}, skipDurationCheck: true},
+		{name: "p shorthand attached", args: cliArgs("7p"), wantErr: nil, want: invocation{mode: modeRun}, skipDurationCheck: true},
+		{name: "space-separated p shorthand token is consumed as part of time arg", args: cliArgs("3:00", "p"), wantErr: nil, want: invocation{mode: modeRun}, skipDurationCheck: true},
 	})
 }
 
@@ -798,6 +801,56 @@ func TestParseWallClockTime(t *testing.T) {
 			token:   "9Am",
 			wantOk:  true,
 			wantDur: 18*time.Hour + 30*time.Minute,
+		},
+
+		// --- AM/PM: shorthand a/p ---
+		{
+			name:    "bare hour with a shorthand wraps to next day",
+			token:   "7a",
+			wantOk:  true,
+			wantDur: 16*time.Hour + 30*time.Minute, // 07:00 next day (now is 14:30)
+		},
+		{
+			name:    "bare hour with p shorthand future same day",
+			token:   "7p",
+			wantOk:  true,
+			wantDur: 4*time.Hour + 30*time.Minute, // 19:00 same day
+		},
+		{
+			name:    "HH:MM with p shorthand future",
+			token:   "3:30p",
+			wantOk:  true,
+			wantDur: time.Hour, // 15:30 same day
+		},
+		{
+			name:    "HH:MM with a shorthand wraps to next day",
+			token:   "9:00a",
+			wantOk:  true,
+			wantDur: 18*time.Hour + 30*time.Minute, // 09:00 next day
+		},
+		{
+			name:    "space-separated a shorthand wraps to next day",
+			token:   "7 a",
+			wantOk:  true,
+			wantDur: 16*time.Hour + 30*time.Minute,
+		},
+		{
+			name:    "space-separated p shorthand future same day",
+			token:   "7 p",
+			wantOk:  true,
+			wantDur: 4*time.Hour + 30*time.Minute,
+		},
+		{
+			name:    "uppercase A shorthand",
+			token:   "7A",
+			wantOk:  true,
+			wantDur: 16*time.Hour + 30*time.Minute,
+		},
+		{
+			name:    "uppercase P shorthand",
+			token:   "7P",
+			wantOk:  true,
+			wantDur: 4*time.Hour + 30*time.Minute,
 		},
 
 		// --- AM/PM: with minutes ---
@@ -1640,6 +1693,23 @@ func TestStripAMPM(t *testing.T) {
 		{name: "space separated PM uppercase", token: "1 PM", wantStrip: "1", wantIsPM: true, wantFound: true},
 		{name: "HH:MM with space separated pm", token: "1:30 pm", wantStrip: "1:30", wantIsPM: true, wantFound: true},
 		{name: "HH:MM:SS with space separated pm", token: "1:30:00 pm", wantStrip: "1:30:00", wantIsPM: true, wantFound: true},
+
+		// --- shorthand: attached a/p ---
+		{name: "lowercase a shorthand attached", token: "9a", wantStrip: "9", wantIsPM: false, wantFound: true},
+		{name: "uppercase A shorthand attached", token: "9A", wantStrip: "9", wantIsPM: false, wantFound: true},
+		{name: "lowercase p shorthand attached", token: "1p", wantStrip: "1", wantIsPM: true, wantFound: true},
+		{name: "uppercase P shorthand attached", token: "1P", wantStrip: "1", wantIsPM: true, wantFound: true},
+		{name: "HH:MM with attached a", token: "9:00a", wantStrip: "9:00", wantIsPM: false, wantFound: true},
+		{name: "HH:MM with attached p", token: "3:30p", wantStrip: "3:30", wantIsPM: true, wantFound: true},
+
+		// --- shorthand: space-separated a/p ---
+		{name: "space separated a shorthand", token: "9 a", wantStrip: "9", wantIsPM: false, wantFound: true},
+		{name: "space separated A uppercase", token: "9 A", wantStrip: "9", wantIsPM: false, wantFound: true},
+		{name: "space separated p shorthand", token: "1 p", wantStrip: "1", wantIsPM: true, wantFound: true},
+		{name: "space separated P uppercase", token: "1 P", wantStrip: "1", wantIsPM: true, wantFound: true},
+
+		// --- am/p suffix does not match only 'a' inside "am" ---
+		{name: "9am still strips am not just a", token: "9am", wantStrip: "9", wantIsPM: false, wantFound: true},
 	}
 
 	for _, tc := range tests {
@@ -1716,7 +1786,12 @@ func TestIsAMPMToken(t *testing.T) {
 		{token: "PM", want: true},
 		{token: "Am", want: true},
 		{token: "Pm", want: true},
+		{token: "a", want: true},
+		{token: "p", want: true},
+		{token: "A", want: true},
+		{token: "P", want: true},
 		{token: "9am", want: false},
+		{token: "9a", want: false},
 		{token: "9:00", want: false},
 		{token: "-q", want: false},
 		{token: "", want: false},

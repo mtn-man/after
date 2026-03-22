@@ -288,17 +288,27 @@ func parseWallClockTime(token string, now time.Time) (time.Duration, bool, error
 }
 
 // stripAMPM removes a trailing AM or PM suffix from token, case-insensitively.
-// The suffix may be directly attached ("9am") or preceded by a single space ("9 am").
+// The suffix may be directly attached ("9am", "9a") or preceded by a single space ("9 am", "9 a").
 // Returns the stripped token, whether the suffix was PM, and whether any suffix was found.
 // The space-prefixed suffixes are checked first to ensure "9 am" strips " am" in full
 // rather than just "am", which would leave a trailing space in the result.
+// The two-letter forms ("am"/"pm") are checked before the one-letter shorthands ("a"/"p")
+// so that "9am" never accidentally matches only "a".
+// The one-letter shorthands are only accepted when the character immediately preceding
+// the suffix is a digit, preventing false matches on unrelated tokens like "--help".
 func stripAMPM(token string) (string, bool, bool) {
 	lower := strings.ToLower(token)
-	for _, suffix := range []string{" am", " pm", "am", "pm"} {
-		if strings.HasSuffix(lower, suffix) {
-			isPM := suffix == "pm" || suffix == " pm"
-			return strings.TrimSuffix(token, token[len(token)-len(suffix):]), isPM, true
+	for _, suffix := range []string{" am", " pm", "am", "pm", " a", " p", "a", "p"} {
+		if !strings.HasSuffix(lower, suffix) {
+			continue
 		}
+		stripped := token[:len(token)-len(suffix)]
+		// For single-letter shorthands, require the preceding character to be a digit.
+		if (suffix == "a" || suffix == "p" || suffix == " a" || suffix == " p") && (len(stripped) == 0 || stripped[len(stripped)-1] < '0' || stripped[len(stripped)-1] > '9') {
+			continue
+		}
+		isPM := suffix == "pm" || suffix == " pm" || suffix == "p" || suffix == " p"
+		return stripped, isPM, true
 	}
 	return token, false, false
 }
@@ -322,11 +332,11 @@ func applyAMPM(hour int, isPM bool) (int, bool) {
 	return hour, true
 }
 
-// isAMPMToken reports whether s is exactly "am" or "pm", case-insensitively.
+// isAMPMToken reports whether s is exactly "am", "pm", "a", or "p", case-insensitively.
 // Used by parseInvocation to detect a space-separated AM/PM token following a time argument.
 func isAMPMToken(s string) bool {
 	lower := strings.ToLower(s)
-	return lower == "am" || lower == "pm"
+	return lower == "am" || lower == "pm" || lower == "a" || lower == "p"
 }
 
 // parseTimeField parses a numeric string and checks it falls within [min, max].
