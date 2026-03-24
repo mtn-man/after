@@ -137,7 +137,7 @@ after 14:30     # next 2:30 PM (24-hour time)
 after 9am       # next 9:00 AM
 after 9p        # next 9:00 PM
 
-after -q 5m     # quiet (no output or alarm)
+after -q 5m     # quiet (no alarm or status messages)
 after -s 5m     # force alarm
 ```
 
