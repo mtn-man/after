@@ -1,8 +1,16 @@
 # after
 
-A simple countdown timer for the terminal.
+Terminal countdown timer: set a fixed duration or count down to a specific time of day, and get notified when complete.
+
+[![Latest Release](https://img.shields.io/github/v/release/mtn-man/after)](https://github.com/mtn-man/after/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Go](https://img.shields.io/badge/go-1.23+-00ADD8?logo=go&logoColor=white)](https://go.dev/dl/)
 
 <img src="assets/demo.gif" width="600" alt="after demo" />
+
+## Why after?
+
+Most terminal timers leave you wondering if they're still running. `after` shows a live countdown to a duration or time of day, plays an audio alert when done, and integrates cleanly with scripts and pipelines.
 
 ## Quick Start
 
@@ -10,34 +18,41 @@ Install and run in under a minute (requires [Homebrew](https://brew.sh)):
 
 ```bash
 brew install mtn-man/tools/after
-after --help
 after 10m
 ```
 
 If `after` is not found once installed, see [Troubleshooting](#troubleshooting).
 
-## Features
-
-- Live countdown display in the terminal and title bar
-- Audio alert on completion (best-effort, platform-specific)
-- Count down to a time of day in 24-hour or 12-hour AM/PM format
-- Keeps macOS awake while the timer runs (except when piped or backgrounded)
-- Plays well in scripts and pipelines
-
 ## Installation
 
-### Install With Homebrew (Recommended)
+> **Note:** Windows is not currently supported. If you want it, let us know!
 
+### Install With Go
+
+Requires Go 1.23+ on macOS, Linux, or BSD. Get Go: https://go.dev/dl/
+
+Install the latest version:
 ```bash
-brew install mtn-man/tools/after
+go install github.com/mtn-man/after@latest
 ```
 
-Verify:
+Or install a specific release:
 ```bash
-after --version
+go install github.com/mtn-man/after@<version>
 ```
 
-### Install Prebuilt Release Binary (Tested Platforms: macOS/Linux)
+Or clone and build locally:
+```bash
+git clone https://github.com/mtn-man/after.git
+cd after
+go build -o after .
+./after --version
+```
+
+### Install Prebuilt Release Binary
+
+<details>
+<summary>Binary installation steps (macOS and Linux)</summary>
 
 1. Download your platform archive and `checksums.txt` from the
    [latest release](https://github.com/mtn-man/after/releases/latest).
@@ -94,27 +109,7 @@ after --version
    after --version
    ```
 
-### Install With Go
-
-Prerequisite: Go 1.23+ installed. Get Go: https://go.dev/dl/
-
-Install the latest version:
-```bash
-go install github.com/mtn-man/after@latest
-```
-
-Or install a specific release:
-```bash
-go install github.com/mtn-man/after@<version>
-```
-
-Or clone and build locally:
-```bash
-git clone https://github.com/mtn-man/after.git
-cd after
-go build -o after .
-./after --version
-```
+</details>
 
 ## Usage
 
@@ -128,104 +123,47 @@ wrapping to tomorrow if already passed.
 ### Examples
 
 ```bash
-after 30s       # 30 seconds
-after 5m        # 5 minutes
-after 1h30m     # 1 hour 30 minutes
-after 30        # bare numbers are seconds
+# durations
+after 30        # bare number = seconds
+after 5m        # minutes
+after 1h30m     # hours and minutes
+after 1.5h      # decimal hours
 
-after 14:30     # next 2:30 PM (24-hour time)
+# times of day
 after 9am       # next 9:00 AM
 after 9p        # next 9:00 PM
-
-after -q 5m     # quiet (no alarm or status messages)
-after -s 5m     # force alarm
-```
-
-### More examples
-
-```bash
-after 90m       # 90 minutes
-after 1.5h      # 1.5 hours
-
-after 9a        # shorthand for 9am
-after 2:30pm    # 12-hour time
-after 2:30 PM   # space-separated AM/PM
+after 14:30     # 24-hour format
+after 2:30 PM   # 12-hour with AM/PM
 after noon      # 12:00 PM
 after midnight  # 12:00 AM
 
-after -qs 5m    # quiet, but keep alarm
-after -qt 5m    # quiet + no title bar updates
-after -qts 5m   # quiet + no title bar + force alarm
+# flags
+after -q 5m                    # suppress alarm and status output
+after -qs 5m                   # quiet but keep alarm
+after -qt 5m                   # quiet and no title bar updates
+after -f ~/sounds/bell.mp3 5m  # custom alert sound
 
-after --sound-file ~/Sounds/bell.mp3 5m
-after -f /System/Library/Sounds/Funk.aiff 5
-
-after 10m 2> /tmp/after.log    # capture lifecycle output
-after -s 10m 2> /dev/null &    # background with alarm
+# scripting
+after 10m 2> /tmp/after.log   # capture lifecycle output
+after -s 10m 2> /dev/null &   # background with alarm
 ```
 
-Options may be placed before or after the time value. Short flags
-can be combined: `-qt`, `-qs`, `-qts`.
-
-### Flags
-
-- `-h`, `--help`: Show help and exit
-- `-v`, `--version`: Show version and exit
-- `-q`, `--quiet`: TTY: suppress alarm, completion text, and cancel
-  text (inline countdown still runs, title bar still updates). Non-TTY:
-  suppress lifecycle status output. Combine with `-s` (`-qs`) to keep
-  the alarm while suppressing other output.
-- `-t`, `--no-title`: Suppress terminal title bar updates. Useful in
-  multiplexers like tmux or screen where title changes affect window
-  names. Combine with `-q` (`-qt`) to suppress both.
-- `-s`, `--sound`: Force alarm playback on completion even in
-  `--quiet` or non-TTY mode
-- `-f`, `--sound-file <path>`: Path to a custom audio file to play on
-  completion (implies `--sound`; supported on macOS, Linux, and
-  FreeBSD). If the file cannot be resolved or used, after falls back to
-  the default alarm backend. OpenBSD/NetBSD always use the default
-  alarm backend.
-- `-c`, `--caffeinate`: Force sleep-inhibition attempt even in non-TTY
-  mode (macOS only)
-- `--`: End option parsing; all following tokens are treated as
-  positional arguments
+Options may be placed before or after the time value. Short flags can
+be combined: `-qt`, `-qs`, `-qts`. Run `after --help` for all flags.
 
 ## How It Works
 
-Status output is written to `stderr`, leaving `stdout` clean for
-pipeline use.
+Status output goes to `stderr`, leaving `stdout` clean for pipelines.
+The countdown shows only significant fields (`1:23` for 83 seconds,
+`1:02:03` for just over an hour).
 
-The countdown updates every 500ms, showing only significant fields
-(`1:23` for 83 seconds, `1:02:03` for just over an hour). In a normal
-terminal session, the title bar also updates alongside the inline
-countdown. On completion, `after complete` is printed and an audio
-alert plays. Press Ctrl+C at any time to cancel gracefully. In an
-interactive terminal session, `q`, Esc, and Ctrl+D also cancel.
+When output is redirected (e.g. `2> /tmp/after.log`), the countdown is
+suppressed and only lifecycle lines are emitted: `after: started (...)`,
+`after: complete`, and `after: cancelled`. The alarm does not play in
+this mode unless `--sound` is specified.
 
-With `-q` / `--quiet`, the alarm, completion text, and cancel text are
-suppressed; the inline countdown and title bar updates continue. Combine
-with `-s` to keep the alarm while still suppressing other output. Use
-`-t` / `--no-title` to suppress title bar updates independently —
-handy in tmux or screen sessions. Combine `-q` and `-t` (`-qt`) to
-suppress both.
-
-When output is redirected (for example `2> /tmp/after.log`), the
-countdown is suppressed and only lifecycle lines are emitted:
-`after: started (...)`, `after: complete`, and `after: cancelled`. The
-alarm does not play automatically in this mode unless `--sound` is
-specified.
-
-On macOS, after prevents the system from sleeping for its duration.
-This requires a normal interactive session by default; use
-`--caffeinate` to force it when output is redirected.
-
-## Requirements
-
-- Go 1.23+ required only for building from source
-- A Unix-like OS (macOS, Linux, or BSD) for source builds
-- Prebuilt binaries are published for macOS and Linux (`amd64` and
-  `arm64`). BSD is expected to work from source; 
-  Windows is currently unsupported.
+On macOS, `after` prevents the system from sleeping for its duration.
+Use `--caffeinate` to force this when output is redirected.
 
 ## Troubleshooting
 
@@ -239,6 +177,10 @@ This requires a normal interactive session by default; use
 - Homebrew command ambiguity with an existing `after` formula: use
   `brew install mtn-man/tools/after` and
   `brew info mtn-man/tools/after`.
+
+## Contributing
+
+Bug reports, suggestions, and pull requests are welcome. Open an issue to start a conversation.
 
 ## License
 
