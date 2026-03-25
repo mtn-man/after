@@ -1,6 +1,6 @@
 # after
 
-Terminal countdown timer: set a fixed duration or count down to a specific time of day, and get notified when complete.
+A predictable terminal timer for durations and times of day, with clean output and reliable scripting behavior.
 
 [![Latest Release](https://img.shields.io/github/v/release/mtn-man/after)](https://github.com/mtn-man/after/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -8,9 +8,21 @@ Terminal countdown timer: set a fixed duration or count down to a specific time 
 
 <img src="assets/demo.gif" width="600" alt="after demo" />
 
+```bash
+after 10m   # simple countdown
+after 1pm   # until next 1 PM
+```
+
 ## Why after?
 
-Most terminal timers leave you wondering if they're still running. `after` shows a live countdown to a duration or time of day, plays an audio alert when done, and integrates cleanly with scripts and pipelines.
+`after` is a small, predictable terminal timer that behaves well both interactively and in scripts.
+- Shows a live countdown when you're in a terminal
+- Accepts both fixed durations and times of day (`after 1pm`)
+- Keeps `stdout` clean and sends lifecycle events to `stderr`
+- Stays quiet and well-behaved when output is redirected or piped
+- Plays an optional alert when the timer completes
+
+It’s designed to feel natural at the command line, without surprises.
 
 ## Quick Start
 
@@ -20,6 +32,7 @@ Install and run in under a minute (requires [Homebrew](https://brew.sh)):
 brew install mtn-man/tools/after
 after 10m
 ```
+Once running, use q, esc, ctrl+c or ctrl+d to cancel.
 
 If `after` is not found once installed, see [Troubleshooting](#troubleshooting).
 
@@ -51,6 +64,7 @@ go build -o after .
 
 ### Install Prebuilt Release Binary
 
+Prefer a manual install? Download a prebuilt binary:
 <details>
 <summary>Binary installation steps (macOS and Linux)</summary>
 
@@ -149,9 +163,10 @@ after -s 10m 2> /dev/null &   # background with alarm
 ```
 
 Options may be placed before or after the time value. Short flags can
-be combined: `-qt`, `-qs`, `-qts`. Run `after --help` for all flags.
+be combined: `-qt`, `-qs`, `-qts`. 
+Run `after --help` for all flags.
 
-## How It Works
+## Behavior
 
 Status output goes to `stderr`, leaving `stdout` clean for pipelines.
 The countdown shows only significant fields (`1:23` for 83 seconds,
