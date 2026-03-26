@@ -200,3 +200,8 @@ Bug reports, suggestions, and pull requests are welcome. Open an issue to start 
 ## License
 
 MIT License. See [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This tool has been made using LLM assistance for code review and bugfixes;
+All code is human reviewed and verified to work as intended.
